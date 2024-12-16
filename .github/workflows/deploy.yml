@@ -14,6 +14,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+        with:
+          submodules: recursive
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -25,10 +27,25 @@ jobs:
           version: 8
           run_install: false
 
+      # 先构建 WASM 包
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+
+      - name: Build WASM
+        run: |
+          cd packages/tokenizers-wasm
+          wasm-pack build --target web
+
+      # 然后安装依赖并构建
       - name: Install dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build
+      - name: Build playground
         run: cd playground && pnpm run build
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}

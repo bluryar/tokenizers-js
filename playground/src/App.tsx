@@ -1,10 +1,15 @@
 import { defineComponent, ref, onMounted } from 'vue'
 import { init,TokenizerWrapper } from '@bluryar/tokenizers-js'
 
+const getAssetUrl = (url: string) => {
+  if (url.startsWith('http')) return url
+  return import.meta.env.BASE_URL + url
+}
+
 const DEFAULT_TOKENIZER_URLS = [
     'https://huggingface.co/Qwen/Qwen2.5-0.5B/resolve/main/tokenizer.json',
     'https://hf-mirror.com/Qwen/Qwen2.5-0.5B/resolve/main/tokenizer.json'
-]
+].map(getAssetUrl)
 
 export default defineComponent({
     name: 'App',

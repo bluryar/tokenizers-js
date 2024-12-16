@@ -84,19 +84,19 @@ jobs:
           git commit -m "chore: bump version to ${NEW_VERSION} (upstream: ${LATEST_TAG})"
           git tag v${NEW_VERSION}
           
-      - name: Push changes
-        run: |
-          git remote set-url origin git@github.com:${{ github.repository }}.git
-          git push origin HEAD:main --tags
-        env:
-          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
-          
       - name: Install SSH key
         run: |
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan github.com >> ~/.ssh/known_hosts
+          
+      - name: Push changes
+        run: |
+          git remote set-url origin git@github.com:${{ github.repository }}.git
+          git push origin HEAD:main --tags
+        env:
+          SSH_AUTH_SOCK: /tmp/ssh_agent.sock
           
       - name: Publish to NPM
         run: |

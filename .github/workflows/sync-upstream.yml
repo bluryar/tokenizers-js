@@ -63,9 +63,12 @@ jobs:
           echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
           echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
           
+      - name: Build WASM
+        run: wasm-pack build --target web --out-dir packages/tokenizers-wasm --release
+
       - name: Install dependencies
         run: pnpm install
-        
+
       - name: Build packages
         run: pnpm build
         
@@ -108,4 +111,4 @@ jobs:
           draft: false
           prerelease: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

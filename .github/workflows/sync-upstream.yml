@@ -47,15 +47,14 @@ jobs:
       - name: Update version
         id: version
         run: |
+          # 安装semver
+          npm install -g semver
+          
           # 从package.json获取当前版本
           CURRENT_VERSION=$(node -p "require('./packages/tokenizers-js/package.json').version")
           
           # 增加patch版本号
-          NEW_VERSION=$(node -e "
-            const semver = require('semver');
-            const current = process.argv[1];
-            console.log(semver.inc(current, 'patch'));
-          " $CURRENT_VERSION)
+          NEW_VERSION=$(semver -i patch $CURRENT_VERSION)
           
           # 更新package.json
           cd packages/tokenizers-js

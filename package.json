@@ -3,8 +3,7 @@
   "private": true,
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter playground dev",
-    "preinstall": "wasm-pack build --target web --out-dir packages/tokenizers-wasm"
+    "dev": "pnpm --filter playground dev"
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

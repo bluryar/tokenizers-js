@@ -12,38 +12,38 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          submodules: recursive
+          fetch-depth: 0
 
-      - name: Install Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version: '20'
 
-      - uses: pnpm/action-setup@v2
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
         with:
           version: 8
-          run_install: false
 
-      # 先构建 WASM 包
       - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
+        uses: actions-rs/toolchain@v1
         with:
-          targets: wasm32-unknown-unknown
+          profile: minimal
+          toolchain: stable
 
       - name: Install wasm-pack
         run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
       - name: Build WASM
-        run: |
-          cd packages/tokenizers-wasm
-          wasm-pack build --target web
+        run: wasm-pack build --target web --out-dir packages/tokenizers-wasm --release
 
-      # 然后安装依赖并构建
       - name: Install dependencies
-        run: pnpm install --no-frozen-lockfile
+        run: pnpm install
+
+      - name: Build packages
+        run: pnpm build
 
       - name: Build playground
         run: cd playground && pnpm run build

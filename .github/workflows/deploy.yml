@@ -46,12 +46,17 @@ jobs:
         run: pnpm build
 
       - name: Build playground
-        run: cd playground && pnpm run build
+        run: |
+          cd playground
+          pnpm run build
+          mkdir -p ../dist
+          cp -r dist/* ../dist/
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
 
       - name: Deploy
         uses: JamesIves/github-pages-deploy-action@v4
         with:
-          folder: playground/dist
+          folder: dist
           branch: gh-pages
+          clean: true

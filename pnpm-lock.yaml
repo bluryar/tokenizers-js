@@ -30,8 +30,6 @@ importers:
         specifier: ^5.2.2
         version: 5.7.2
 
-  packages/tokenizers-js/dist/tokenizers-wasm: {}
-
   packages/tokenizers-wasm: {}
 
   playground:

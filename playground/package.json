@@ -4,8 +4,8 @@
   "version": "0.1.0",
   "type": "module",
   "scripts": {
-    "dev": "pnpm run -F @bluryar/tokenizers-js build && vite",
-    "build": "vue-tsc && vite build",
+    "dev": "vite",
+    "build": "vite build",
     "preview": "vite preview"
   },
   "dependencies": {

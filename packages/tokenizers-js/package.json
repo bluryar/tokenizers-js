@@ -18,7 +18,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch"
+    "dev": "tsup --watch ."
   },
   "devDependencies": {
     "@types/node": "^20.0.0",

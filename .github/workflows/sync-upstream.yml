@@ -1,0 +1,112 @@
+name: Sync Upstream and Publish
+
+on:
+  # 手动触发
+  workflow_dispatch:
+  # 定时检查上游仓库
+  schedule:
+    - cron: '0 0 * * *'  # 每天UTC 00:00运行
+
+jobs:
+  sync-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://registry.npmjs.org'
+          
+      - name: Install pnpm
+        uses: pnpm/action-setup@v2
+        with:
+          version: 8
+          
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable
+          
+      - name: Install wasm-pack
+        run: curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
+          
+      - name: Get latest upstream release
+        id: upstream
+        run: |
+          LATEST_TAG=$(curl -s https://api.github.com/repos/huggingface/tokenizers/releases/latest | jq -r .tag_name)
+          echo "LATEST_TAG=${LATEST_TAG}" >> $GITHUB_ENV
+          echo "latest_tag=${LATEST_TAG}" >> $GITHUB_OUTPUT
+          
+      - name: Update version
+        id: version
+        run: |
+          # 从package.json获取当前版本
+          CURRENT_VERSION=$(node -p "require('./packages/tokenizers-js/package.json').version")
+          
+          # 增加patch版本号
+          NEW_VERSION=$(node -e "
+            const semver = require('semver');
+            const current = process.argv[1];
+            console.log(semver.inc(current, 'patch'));
+          " $CURRENT_VERSION)
+          
+          # 更新package.json
+          cd packages/tokenizers-js
+          npm version $NEW_VERSION --no-git-tag-version
+          
+          echo "NEW_VERSION=${NEW_VERSION}" >> $GITHUB_ENV
+          echo "new_version=${NEW_VERSION}" >> $GITHUB_OUTPUT
+          
+      - name: Install dependencies
+        run: pnpm install
+        
+      - name: Build packages
+        run: pnpm build
+        
+      - name: Run tests
+        run: pnpm test
+        
+      - name: Commit changes
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add .
+          git commit -m "chore: bump version to ${NEW_VERSION} (upstream: ${LATEST_TAG})"
+          git tag v${NEW_VERSION}
+          
+      - name: Push changes
+        uses: ad-m/github-push-action@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ github.ref }}
+          tags: true
+          
+      - name: Publish to NPM
+        run: |
+          cd packages/tokenizers-js
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ steps.version.outputs.new_version }}
+          name: Release v${{ steps.version.outputs.new_version }}
+          body: |
+            Synced with upstream tokenizers v${{ steps.upstream.outputs.latest_tag }}
+            
+            ## Changes
+            - Updated to latest upstream version
+            - Patch version bump
+          draft: false
+          prerelease: false
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} 

@@ -1,6 +1,3 @@
-好的,我来帮你编写一个README文件。基于代码库的内容,这是一个使用Rust和WebAssembly实现的tokenizer库的monorepo项目。以下是README的内容:
-
-```markdown:README.md
 # Tokenizers.js
 
 这是一个基于Rust的tokenizer库的JavaScript封装,使用WebAssembly实现高性能的文本标记化功能。
